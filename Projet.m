@@ -22,8 +22,8 @@ addpath ([curpath '\Images\STOP']);
 
 %% Chargement de l'image
 
-% im = imread('CDPAS011.jpg');
-im = imread('DIVER001.jpg');
+im = imread('CDPAS007.jpg');
+% im = imread('DIVER014.jpg');
 % im = imread('SINTD025.jpg');
 % im = imread('RALT019.jpg');
 % im = imread('INTD004.jpg');
@@ -56,40 +56,10 @@ figure, imshow(imgYCbCr), title('Image domaine YCbCr');
 
 imdetect = zeros(H,W);
 
-% Détection des contours en RGB
+% Détection des contours en rouge
 
-% for i = 1:H
-%     for j = 1:W
-% %         if img(i,j,1) < 0.5 && img(i,j,2) < 0.1 && img(i,j,3) < 0.1
-%         if  img(i,j,1)/img(i,j,2) > 1.25 && img(i,j,1)/img(i,j,3) > 1.4 ...
-%                 || img(i,j,3)/img(i,j,1) > 1.2 && img(i,j,3)/img(i,j,2) > 1.2
-%             imdetect(i,j,:) = 1;
-%         else imdetect(i,j,:) = 0;
-%         end
-%     end
-% end
-
-% Détection des contours en YCbCr (prend en compte la luminance et deux caractéristiques de chrominance)
-
-for i = 1:H
-    for j = 1:W
-        if  imgYCbCr(i,j,2) > 0.4 && imgYCbCr(i,j,2) < 0.6 ...
-            && imgYCbCr(i,j,3) > 0.5 && imgYCbCr(i,j,3) < 0.8
-            
-%         if  imgYCbCr(i,j,2)/imgYCbCr(i,j,3) > 0.6 && imgYCbCr(i,j,2)/imgYCbCr(i,j,3) < 0.9 ...
-%             && imgYCbCr(i,j,3)/imgYCbCr(i,j,2) > 1.1 && imgYCbCr(i,j,3)/imgYCbCr(i,j,2) < 1.5
-
-%         if  imgYCbCr(i,j,3)/imgYCbCr(i,j,1) > 1.6 && imgYCbCr(i,j,3)/imgYCbCr(i,j,1) < 2.2 ...
-%             || imgYCbCr(i,j,2)/imgYCbCr(i,j,1) > 1.8 && imgYCbCr(i,j,2)/imgYCbCr(i,j,1) < 3
-
-            imdetect(i,j,:) = 1;
-            
-        else imdetect(i,j,:) = 0;
-        end
-    end
-end
-
-figure, imshow(imdetect);
+imdetectred = redDetect(img,imgYCbCr,imgYCbCr);
+figure, imshow(imdetectred);
 
 %% Extraction des premières formes détectées
 
