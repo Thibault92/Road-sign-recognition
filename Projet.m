@@ -9,18 +9,29 @@ clc
 
 curpath = cd;
 addpath ([curpath '\Images']);
-
+addpath ([curpath '\Images\CDPA']);
+addpath ([curpath '\Images\DIVER']);
+addpath ([curpath '\Images\INTD']);
+addpath ([curpath '\Images\INTG']);
+addpath ([curpath '\Images\LIMV']);
+addpath ([curpath '\Images\RALT']);
+addpath ([curpath '\Images\SINTD']);
+addpath ([curpath '\Images\STATI']);
+addpath ([curpath '\Images\STATJ']);
+addpath ([curpath '\Images\STOP']);
 
 %% Chargement de l'image
 
-im = imread('CDPAS001.jpg');
+im = imread('CDPAS007.jpg');
 % im = imread('DIVER014.jpg');
-% im = imread('SINTD001.jpg');
-% im = imread('RALT001.jpg');
-% im = imread('INTG001.jpg');
-% im = imread('LIMV001.jpg');
-% im = imread('STATI001.jpg');
-% im = imread('STOP001.jpg');
+% im = imread('SINTD025.jpg');
+% im = imread('RALT019.jpg');
+% im = imread('INTD004.jpg');
+% im = imread('INTG009.jpg');
+% im = imread('LIMV040.jpg');
+% im = imread('STATI037.jpg');
+% im = imread('STATJ009.jpg');
+% im = imread('STOP024.jpg');
 
 im = im2double(im);
 
@@ -33,7 +44,7 @@ img = imresize(im, [400 400]);
 
 [H,W,Canaux] = size(img);
 % size(img)
-% figure, imshow(img), title('Image redimensionnée');
+figure, imshow(img), title('Image redimensionnée');
 
 %% Conversion de l'image du RGB vers YCbCR
 
@@ -45,35 +56,11 @@ figure, imshow(imgYCbCr), title('Image domaine YCbCr');
 
 imdetect = zeros(H,W);
 
-% Détection des contours en RGB
+% Détection des contours en rouge
 
-% for i = 1:H
-%     for j = 1:W
-% %         if img(i,j,1) < 0.5 && img(i,j,2) < 0.1 && img(i,j,3) < 0.1
-%         if  img(i,j,1)/img(i,j,2) > 1.25 && img(i,j,1)/img(i,j,3) > 1.4 ...
-%                 || img(i,j,3)/img(i,j,1) > 1.2 && img(i,j,3)/img(i,j,2) > 1.2
-%             imdetect(i,j,:) = 1;
-%         else imdetect(i,j,:) = 0;
-%         end
-%     end
-% end
+imdetectred = redDetect(img,imgYCbCr,imgYCbCr);
 
-% Détection des contours en YCbCr (prend en compte la luminance et non plus
-% la chrominance
-
-for i = 1:H
-    for j = 1:W
-
-        if  imgYCbCr(i,j,3)/imgYCbCr(i,j,1) > 1.2 || imgYCbCr(i,j,2)/imgYCbCr(i,j,1) > 1.2
-
-            imdetect(i,j,:) = 1;
-            
-        else imdetect(i,j,:) = 0;
-        end
-    end
-end
-
-% figure, imshow(imdetect);
+figure, imshow(imdetectred);
 
 %% Extraction des premières formes détectées
 
