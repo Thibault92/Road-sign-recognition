@@ -56,10 +56,18 @@ figure, imshow(imgYCbCr), title('Image domaine YCbCr');
 
 imdetect = zeros(H,W);
 
+Cb = imgYCbCr;
+Cr = imgYCbCr;
+
 % Détection des contours en rouge
 
-imdetectred = redDetect(img,imgYCbCr,imgYCbCr);
-figure, imshow(imdetectred);
+% imdetectred = redDetect(img,Cb,Cr);
+% figure, imshow(imdetectred);
+
+% Détection des contours en bleu
+
+imdetectblue = blueDetect(img,Cb,Cr);
+figure, imshow(imdetectblue);
 
 %% Extraction des premières formes détectées
 
