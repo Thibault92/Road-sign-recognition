@@ -71,6 +71,43 @@ figure, imshow(imdetectblue);
 
 %% Extraction des premières formes détectées
 
+%Suppresion des pixels parasites
+SE = [0 1 0;1 1 1;0 1 0];
+% SE = [0 1 1 1 0; 1 1 1 1 1; 0 1 1 1 0];
+N = 3;
+
+for i = 1:N
+    imdetectred = imerode(imdetectred,SE);
+end
+figure,imshow(imdetectred);
+
+imres = zeros(H,W);
+bw = im2bw(imdetectred); % conversion en image binaire
+
+%% Comparaison avec la base des formes
+
+%% Charger une image référence
+ref = imread('Tri.bmp');
+% imref = rgb2gray(ref);
+[H1,W1] = size(ref);
+figure,imshow(ref);
+
+% position du centre de l'image
+x0 = round(H1/2);
+y0 = round(W1/2);
+
+%% Effectuer la corrélation sur toute l'image testée
+% et créer une image de corrélation 
+rescorr = zeros(H,W);
+for i=1:H-H1
+   for j=1:W-W1
+      c = corr2(ref,imdetectred(i:i+H1-1, j:j+W1-1));     
+      rescorr(i,j) = c;         
+   end;
+end;
+
+figure, imshow(rescorr);
+
 
 %% Comparaison avec la base des formes
 
