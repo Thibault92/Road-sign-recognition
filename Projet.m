@@ -74,7 +74,7 @@ figure, imshow(imdetectblue);
 %Suppresion des pixels parasites
 SE = [0 1 0;1 1 1;0 1 0];
 % SE = [0 1 1 1 0; 1 1 1 1 1; 0 1 1 1 0];
-N = 3;
+N = 1;
 
 for i = 1:N
     imdetectred = imerode(imdetectred,SE);
@@ -87,10 +87,14 @@ bw = im2bw(imdetectred); % conversion en image binaire
 %% Comparaison avec la base des formes
 
 %% Charger une image référence
-ref = imread('Tri.bmp');
+carre = imread('Cercle_plein.bmp');
+% carre = imread('Triangle.bmp');
+% carre = imread('Carre.bmp');
+% oct = imread('Oct.bmp');
+
 % imref = rgb2gray(ref);
-[H1,W1] = size(ref);
-figure,imshow(ref);
+[H1,W1] = size(carre);
+figure,imshow(carre);
 
 % position du centre de l'image
 x0 = round(H1/2);
@@ -101,12 +105,24 @@ y0 = round(W1/2);
 rescorr = zeros(H,W);
 for i=1:H-H1
    for j=1:W-W1
-      c = corr2(ref,imdetectred(i:i+H1-1, j:j+W1-1));     
-      rescorr(i,j) = c;         
+       c = corr2(carre,bw(i:i+H1-1, j:j+W1-1));
+      rescorr(i+x0,j+y0) = c;         
    end;
 end;
 
 figure, imshow(rescorr);
+
+maxi=max(rescorr(:));
+mini= min(rescorr(:));
+disp('Résultats de corrélation');
+[indx,indy] = find(rescorr==maxi);
+disp(sprintf('Maximum : %2.4f en :',maxi));
+for k=1:length(indx), disp(sprintf('         -->  [%d,%d]',indx(k),indy(k)));end
+[indx,indy] = find(rescorr==mini);
+disp(sprintf('Minimum : %2.4f en :',mini));
+for k=1:length(indx), disp(sprintf('         -->  [%d,%d]',indx(k),indy(k)));end
+
+
 
 
 %% Comparaison avec la base des formes
