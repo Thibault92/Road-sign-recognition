@@ -20,18 +20,20 @@ addpath ([curpath '\Images\STATI']);
 addpath ([curpath '\Images\STATJ']);
 addpath ([curpath '\Images\STOP']);
 
+addpath ([curpath '\Base_formes']);
+
 %% Chargement de l'image
 
-im = imread('CDPAS007.jpg');
-% im = imread('DIVER014.jpg');
-% im = imread('SINTD025.jpg');
-% im = imread('RALT019.jpg');
-% im = imread('INTD004.jpg');
+% im = imread('CDPAS015.jpg');
+% im = imread('DIVER001.jpg');
+% im = imread('SINTD004.jpg');
+% im = imread('RALT001.jpg');
+im = imread('INTD003.jpg');
 % im = imread('INTG009.jpg');
 % im = imread('LIMV040.jpg');
 % im = imread('STATI037.jpg');
 % im = imread('STATJ009.jpg');
-% im = imread('STOP024.jpg');
+% im = imread('STOP001.jpg');
 
 im = im2double(im);
 
@@ -56,82 +58,145 @@ figure, imshow(imgYCbCr), title('Image domaine YCbCr');
 
 imdetect = zeros(H,W);
 
-Cb = imgYCbCr;
-Cr = imgYCbCr;
+Y = imgYCbCr(:,:,1);
+Cb = imgYCbCr(:,:,2);
+Cr = imgYCbCr(:,:,3);
 
-% Détection des contours en rouge
+    % Détection des contours en rouge
 
-% imdetectred = redDetect(img,Cb,Cr);
-% figure, imshow(imdetectred);
+imRed = redDetect(img,Y,Cb,Cr);
+figure, imshow(imRed);
 
-% Détection des contours en bleu
 
-imdetectblue = blueDetect(img,Cb,Cr);
-figure, imshow(imdetectblue);
+    % Détection des contours en bleu
 
-%% Extraction des premières formes détectées
+% imdetectblue = blueDetect(img,Cb,Cr);
+% figure, imshow(imdetectblue);
 
-%Suppresion des pixels parasites
+%% Suppresion des pixels parasites
+
 SE = [0 1 0;1 1 1;0 1 0];
-% SE = [0 1 1 1 0; 1 1 1 1 1; 0 1 1 1 0];
-N = 1;
+N = 2; % nombre d'érosions
 
 for i = 1:N
-    imdetectred = imerode(imdetectred,SE);
+    imRed = imerode(imRed,SE);
 end
-figure,imshow(imdetectred);
 
-imres = zeros(H,W);
-bw = im2bw(imdetectred); % conversion en image binaire
+imRed = imdilate(imRed,SE); % On effectue une ouverture par reconstruction
+figure,imshow(imRed);
 
-%% Comparaison avec la base des formes
-
-%% Charger une image référence
-carre = imread('Cercle_plein.bmp');
-% carre = imread('Triangle.bmp');
-% carre = imread('Carre.bmp');
-% oct = imread('Oct.bmp');
-
-% imref = rgb2gray(ref);
-[H1,W1] = size(carre);
-figure,imshow(carre);
-
-% position du centre de l'image
-x0 = round(H1/2);
-y0 = round(W1/2);
-
-%% Effectuer la corrélation sur toute l'image testée
-% et créer une image de corrélation 
-rescorr = zeros(H,W);
-for i=1:H-H1
-   for j=1:W-W1
-       c = corr2(carre,bw(i:i+H1-1, j:j+W1-1));
-      rescorr(i+x0,j+y0) = c;         
-   end;
-end;
-
-figure, imshow(rescorr);
-
-maxi=max(rescorr(:));
-mini= min(rescorr(:));
-disp('Résultats de corrélation');
-[indx,indy] = find(rescorr==maxi);
-disp(sprintf('Maximum : %2.4f en :',maxi));
-for k=1:length(indx), disp(sprintf('         -->  [%d,%d]',indx(k),indy(k)));end
-[indx,indy] = find(rescorr==mini);
-disp(sprintf('Minimum : %2.4f en :',mini));
-for k=1:length(indx), disp(sprintf('         -->  [%d,%d]',indx(k),indy(k)));end
-
-
-
+imRedbin = im2bw(imRed); % conversion en image binaire
 
 %% Comparaison avec la base des formes
 
-% a = imread('image1.jpg'); 
-%     b = imread('image2.jpg'); 
-%     c = corr2(a,b);           %Trouve la corrélation entre deux images 
-%     if c==1 
+%    Charger une image référence
+cercle_plein = imread('Cercle_plein.bmp');
+cercle = imread('Cercle.bmp');
+triangle = imread('Triangle.bmp');
+triangle_envers = imread('Triangle_envers.bmp');
+carre = imread('Carre.bmp');
+oct = imread('Oct.bmp');
 
-%     end; 
+% cercle_plein = imresize(cercle_plein, [50 50]);
+% cercle = imresize(cercle, [50 50]);
+% triangle = imresize(triangle, [50 50]);
+% triangle_envers = imresize(triangle_envers, [50 50]);
+% carre = imresize(carre, [50 50]);
+% oct = imresize(oct, [50 50]);
+% figure, imshow(triangle);
+
+%% Template Maching de l'image avec la base des formes
+
+
+% corr_cercp = templateMatch(imRedbin, cercle_plein);
+corr_cerc = templateMatch(imRedbin, cercle);
+corr_tri = templateMatch(imRedbin, triangle);
+corr_trienvers = templateMatch(imRedbin, triangle_envers);
+corr_carre = templateMatch(imRedbin, carre);
+corr_oct = templateMatch(imRedbin, oct);
+
+% 
+% figure, imshow(corr_cercp);
+figure, imshow(corr_cerc); title('Matching cercle');
+figure, imshow(corr_tri); title('Matching triangle');
+figure, imshow(corr_trienvers); title('Matching tringle envers');
+figure, imshow(corr_carre);title('Matching carre');
+figure, imshow(corr_oct); title('Matching octogone');
+
+
+
+
+
+
+
+% [labels, nbLabels] = bwlabel(bw);   % étiquetage des régions à l'aide de la fonction bwlabel
+% figure, imshow(bw); % affichage image binaire
+% region_extrait = regionprops(labels,'BoundingBox'); % fonction regionprops pour extraire les régions
+ 
+% %% Méthode 1
+% for i=1:nbLabels
+%     coupe = imcrop(labels,region_extrait(i).BoundingBox);
+%     figure, imshow(coupe);
+% end
+
+% x = imdetectred;
+% for i = 2:H-1
+%     for j = 2:W-1
+%         if x(i-1,j-1) == 1 && x(i,j) == 1 && x(i+1,j+1) == 1 && x(i-1,j) == 0 ...
+%                && x(i-1,j+1) == 0 && x(i,j-1) == 0 && x(i,j+1) == 0 ...
+%               && x(i+1,j-1) == 0 && x(i-1,j) == 0
+%             x(i,j) = 1;
+%             
+%         elseif x(i-1,j-1) == 1 && x(i,j) == 1 && x(i+1,j+1) == 0 && x(i-1,j) == 0 ...
+%                && x(i-1,j+1) == 0 && x(i,j-1) == 0 && x(i,j+1) == 0 ...
+%               && x(i+1,j-1) == 1 && x(i-1,j) == 0
+%             x(i,j) = 1;
+%         elseif x(i-1,j-1) == 0 && x(i,j) == 1 && x(i+1,j+1) == 0 && x(i-1,j) == 0 ...
+%                && x(i-1,j+1) == 0 && x(i,j-1) == 1 && x(i,j+1) == 1 ...
+%               && x(i+1,j-1) == 0 && x(i-1,j) == 0
+%             x(i,j) = 1;
+%         elseif x(i-1,j-1) == 0 && x(i,j) == 1 && x(i+1,j+1) == 1 && x(i-1,j) == 0 ...
+%                && x(i-1,j+1) == 0 && x(i,j-1) == 0 && x(i,j+1) == 0 ...
+%               && x(i+1,j-1) == 1 && x(i-1,j) == 0
+%             x(i,j) = 1;
+%         elseif x(i-1,j-1) == 0 && x(i,j) == 1 && x(i+1,j+1) == 0 && x(i-1,j) == 0 ...
+%                && x(i-1,j+1) == 1 && x(i,j-1) == 0 && x(i,j+1) == 0 ...
+%               && x(i+1,j-1) == 1 && x(i-1,j) == 0
+%             x(i,j) = 1;
+%         elseif x(i-1,j-1) == 0 && x(i,j) == 1 && x(i+1,j+1) == 1 && x(i-1,j) == 0 ...
+%                && x(i-1,j+1) == 0 && x(i,j-1) == 0 && x(i,j+1) == 0 ...
+%               && x(i+1,j-1) == 1 && x(i-1,j) == 0
+%             x(i,j) = 1;
+%         else x(i,j) = 0;
+%         end
+%         
+%     end
+% end
+% figure, imshow(x);
+
+%% Comparaison avec la base des formes
+
+% %% Charger une image référence
+% ref = imread('8.tif','tif');
+% % ref = 0.7*imread('8.tif','tif');
+% % ref = imread('8n.tif','tif');
+% % ref = imread('8b.tif','tif');
+% [H1,W1] = size(ref);
+% figure,imshow(ref), title('Image de référence (8)');
+% 
+% % position du centre de l'image
+% x0 = round(H1/2);
+% y0 = round(W1/2);
+% 
+% %% Effectuer la corrélation sur toute l'image testée
+% % et créer une image de corrélation 
+% rescorr = zeros(H,W);
+% for i=1:H-H1
+%    for j=1:W-W1
+%       c = corr2(ref,im(i:i+H1-1, j:j+W1-1));     
+%       rescorr(i,j) = c;         
+%    end;
+% end;
+
 
 % Comparaison avec la fonction imshowpair (marche avec Matlab 2013)
