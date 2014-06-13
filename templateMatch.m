@@ -1,4 +1,4 @@
-function matchFig = templateMatch(img,fig)
+function [matchFig, maxi, a, b] = templateMatch(img,fig)
 
 % Corrélation d'une figure de référence avec l'image source
 
@@ -19,6 +19,9 @@ maxi=max(matchFig(:));
 disp('Résultats de corrélation');
 [indx,indy] = find(matchFig==maxi);
 disp(sprintf('Maximum : %2.4f en :',maxi));
-for k=1:length(indx), disp(sprintf('         -->  [%d,%d]',indx(k),indy(k)));end
+for k=1:length(indx), disp(sprintf('         -->  [%d,%d]',indx(k),indy(k)));
+    a = indx(k)
+    b = indy(k)
+end
 
 end
