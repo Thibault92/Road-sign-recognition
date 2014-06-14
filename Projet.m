@@ -94,6 +94,18 @@ figure,imshow(imRed);
 
 imRedbin = im2bw(imRed); % conversion en image binaire
 
+%% Etiqueter l'image x
+[imLabel,Etiquettes] = bwlabel(imRedbin);
+disp(sprintf('     -- > %d objets détectés',Etiquettes));
+
+nbObj = regionprops(imLabel, 'BoundingBox', 'Area');
+for k = 1 : length(nbObj)
+  objet = nbObj(k).BoundingBox;
+  rectangle('Position', [objet(1),objet(2),objet(3),objet(4)],...
+  'EdgeColor','r','LineWidth',2 )
+end
+
+
 %% Comparaison avec la base des formes
 
 %    Charger une image référence
@@ -122,8 +134,6 @@ oct = imresize(oct, [50 50]);
 maxi = zeros(1,5);
 x = zeros(1,5);
 y = zeros(1,5);
-
-[seg,pos] = segmenter2(imRedbin);
 
 % for i = 1:length(seg)
 % 
