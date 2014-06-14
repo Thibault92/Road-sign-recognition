@@ -25,8 +25,8 @@ addpath ([curpath '\Base_panneaux']);
 
 
 %% Chargement de la base des panneaux type
-stop = imread('stop.png');
-cdpa = imread('cdpa.jpg');
+% stop = imread('stop.png');
+% cdpa = imread('cdpa.jpg');
 
 %% Chargement de l'image
 
@@ -82,13 +82,14 @@ figure, imshow(imRed);
 %% Suppresion des pixels parasites
 
 SE = [0 1 0;1 1 1;0 1 0];
-N = 2; % nombre d'érosions
-
-for i = 1:N
-    imRed = imerode(imRed,SE);
-end
-
-imRed = imdilate(imRed,SE); % On effectue une ouverture par reconstruction
+% N = 2; % nombre d'érosions
+%
+% for i = 1:N
+%     imRed = imerode(imRed,SE);
+% end
+%
+% imRed = imdilate(imRed,SE); % On effectue une ouverture par reconstruction
+imRed = imopen(imRed,SE);
 figure,imshow(imRed);
 
 imRedbin = im2bw(imRed); % conversion en image binaire
@@ -96,26 +97,24 @@ imRedbin = im2bw(imRed); % conversion en image binaire
 %% Comparaison avec la base des formes
 
 %    Charger une image référence
-% cercle_plein = imread('Cercle_plein.bmp');
+
 cercle = imread('Cercle.bmp');
 triangle = imread('Triangle.bmp');
 triangle_envers = imread('Triangle_envers.bmp');
 carre = imread('Carre.bmp');
 oct = imread('Oct.bmp');
 
-% cercle_plein = imresize(cercle_plein, [50 50]);
-% cercle = imresize(cercle, [50 50]);
-% triangle = imresize(triangle, [50 50]);
-% triangle_envers = imresize(triangle_envers, [50 50]);
-% carre = imresize(carre, [50 50]);
-% oct = imresize(oct, [50 50]);
+cercle = imresize(cercle, [50 50]);
+triangle = imresize(triangle, [50 50]);
+triangle_envers = imresize(triangle_envers, [50 50]);
+carre = imresize(carre, [50 50]);
+oct = imresize(oct, [50 50]);
 
-cercle = imresize(cercle, [75 75]);
-triangle = imresize(triangle, [75 75]);
-triangle_envers = imresize(triangle_envers, [75 75]);
-carre = imresize(carre, [75 75]);
-oct = imresize(oct, [75 75]);
-
+% cercle = imresize(cercle, [75 75]);
+% triangle = imresize(triangle, [75 75]);
+% triangle_envers = imresize(triangle_envers, [75 75]);
+% carre = imresize(carre, [75 75]);
+% oct = imresize(oct, [75 75]);
 % figure, imshow(triangle);
 
 %% Template Maching de l'image avec la base des formes
@@ -124,35 +123,39 @@ maxi = zeros(1,5);
 x = zeros(1,5);
 y = zeros(1,5);
 
-% corr_cercp = templateMatch(imRedbin, cercle_plein);
-[corr_cerc, maxi(1,1), x(1,1), y(1,1)] = templateMatch(imRedbin, cercle);
-[corr_tri, maxi(1,2), x(1,2), y(1,2)] = templateMatch(imRedbin, triangle);
-[corr_trienvers, maxi(1,3), x(1,3), y(1,3)] = templateMatch(imRedbin, triangle_envers);
-[corr_carre, maxi(1,4), x(1,4), y(1,4)] = templateMatch(imRedbin, carre);
-[corr_oct, maxi(1,5), x(1,5), y(1,5)] = templateMatch(imRedbin, oct);
+[seg,pos] = segmenter2(imRedbin);
 
-
-% figure, imshow(corr_cercp);
-figure, imshow(corr_cerc); title('Matching cercle');
-figure, imshow(corr_tri); title('Matching triangle');
-figure, imshow(corr_trienvers); title('Matching tringle envers');
-figure, imshow(corr_carre);title('Matching carre');
-figure, imshow(corr_oct); title('Matching octogone');
-
-position = find(maxi==max(maxi));
-if position == 1
-    disp('Il s''agit d''un cercle');
-    elseif position == 2
-    disp('Il s''agit d''un triangle');
-    elseif position == 3
-    disp('Il s''agit d''un triangle à l''envers : c''est un panneau cédez le passage !!');
-    figure, imshow(cdpa);
-    elseif position == 4
-    disp('Il s''agit d''un carré');
-    elseif position == 5
-    disp('Il s''agit d''un octogone : c''est un panneau stop !!');
-    figure, imshow(stop);
-end
+% for i = 1:length(seg)
+% 
+% [corr_cerc, maxi(1,1), x(1,1), y(1,1)] = templateMatch(imRedbin, cercle);
+% [corr_tri, maxi(1,2), x(1,2), y(1,2)] = templateMatch(imRedbin, triangle);
+% [corr_trienvers, maxi(1,3), x(1,3), y(1,3)] = templateMatch(imRedbin, triangle_envers);
+% [corr_carre, maxi(1,4), x(1,4), y(1,4)] = templateMatch(imRedbin, carre);
+% [corr_oct, maxi(1,5), x(1,5), y(1,5)] = templateMatch(imRedbin, oct);
+% 
+% 
+% % figure, imshow(corr_cercp);
+% figure, imshow(corr_cerc); title('Matching cercle');
+% figure, imshow(corr_tri); title('Matching triangle');
+% figure, imshow(corr_trienvers); title('Matching tringle envers');
+% figure, imshow(corr_carre);title('Matching carre');
+% figure, imshow(corr_oct); title('Matching octogone');
+% 
+% position = find(maxi==max(maxi));
+% if position == 1
+%     disp('Il s''agit d''un cercle');
+%     elseif position == 2
+%     disp('Il s''agit d''un triangle');
+%     elseif position == 3
+%     disp('Il s''agit d''un triangle à l''envers : c''est un panneau cédez le passage !!');
+% %     figure, imshow(cdpa);
+%     elseif position == 4
+%     disp('Il s''agit d''un carré');
+%     elseif position == 5
+%     disp('Il s''agit d''un octogone : c''est un panneau stop !!');
+% %     figure, imshow(stop);
+% end
+% end
 
 
 % [labels, nbLabels] = bwlabel(bw);   % étiquetage des régions à l'aide de la fonction bwlabel
