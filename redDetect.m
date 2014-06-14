@@ -22,8 +22,8 @@ imdetect = zeros([H,W]);
 
 for i = 1:H
     for j = 1:W
-        if  Cb(i,j) > 0.4 && Cb(i,j) < 0.6 ...
-            && Cr(i,j) > 0.5 && Cr(i,j) < 0.8 && Y(i,j) < 0.8
+        if  Cb(i,j) > 0.4 && Cb(i,j) < 0.7 ...
+            && Cr(i,j) > 0.5 && Cr(i,j) < 0.8 && Y(i,j) < 0.6
             
 %         if  imgYCbCr(i,j,2)/imgYCbCr(i,j,3) > 0.6 && imgYCbCr(i,j,2)/imgYCbCr(i,j,3) < 0.9 ...
 %             && imgYCbCr(i,j,3)/imgYCbCr(i,j,2) > 1.1 && imgYCbCr(i,j,3)/imgYCbCr(i,j,2) < 1.5
