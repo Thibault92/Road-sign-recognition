@@ -93,18 +93,23 @@ imRed = imopen(imRed,SE);
 figure,imshow(imRed);
 
 imRedbin = im2bw(imRed); % conversion en image binaire
+% imRedbin = ~imRedbin;
 
 %% Etiqueter l'image x
-[imLabel,Etiquettes] = bwlabel(imRedbin);
+[imLabel,Etiquettes] = bwlabel(imRedbin);       % N représente le nombre d'étiquettes
 disp(sprintf('     -- > %d objets détectés',Etiquettes));
 
-nbObj = regionprops(imLabel, 'BoundingBox', 'Area');
-for k = 1 : length(nbObj)
-  objet = nbObj(k).BoundingBox;
+
+Etiquettes = regionprops(imLabel, 'BoundingBox', 'Area');
+
+for k = 1 : length(Etiquettes)
+  objet = Etiquettes(k).BoundingBox;
   rectangle('Position', [objet(1),objet(2),objet(3),objet(4)],...
   'EdgeColor','r','LineWidth',2 )
 end
 
+Aires = [Etiquettes.Area];
+[classAire, index] = sort(Aires, 'descend');
 
 %% Comparaison avec la base des formes
 
