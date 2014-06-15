@@ -1,0 +1,278 @@
+%% ---------- Projet TNI: Reconnaissance de panneaux routiers -------
+%BERGER Thibault/DIGONNET William
+
+clear all;
+close all;
+clc
+
+%% Inclusion du chemin des images
+
+curpath = cd;
+addpath ([curpath '\Images']);
+addpath ([curpath '\Images\CDPA']);
+addpath ([curpath '\Images\DIVER']);
+addpath ([curpath '\Images\INTD']);
+addpath ([curpath '\Images\INTG']);
+addpath ([curpath '\Images\LIMV']);
+addpath ([curpath '\Images\RALT']);
+addpath ([curpath '\Images\SINTD']);
+addpath ([curpath '\Images\STATI']);
+addpath ([curpath '\Images\STATJ']);
+addpath ([curpath '\Images\STOP']);
+
+addpath ([curpath '\Base_formes']);
+addpath ([curpath '\Base_panneaux']);
+
+
+%% Chargement de la base des panneaux type
+stop = imread('STOP.jpg');
+cdpa = imread('CDPA.jpg');
+sint = imread('SINT.jpg');
+ralt = imread('RALT.jpg');
+limv30 = imread('LIMV30.jpg');
+limv50 = imread('LIMV50.jpg');
+limv60 = imread('LIMV60.jpg');
+limv70 = imread('LIMV70.jpg');
+stati = imread('STATI.jpg');
+statj = imread('STATIJ.jpg');
+imp = imread('IMP.jpg');
+
+%% Chargement de l'image
+
+im = imread('CDPAS008.jpg');
+% im = imread('DIVER018.jpg');
+% im = imread('SINTD018.jpg');
+% im = imread('RALT010.jpg');
+% im = imread('INTD002.jpg');
+% im = imread('INTG003.jpg');
+% im = imread('LIMV040.jpg');
+% im = imread('STATI017.jpg');
+% im = imread('STATJ008.jpg');
+% im = imread('STOP020.jpg');
+
+im = im2double(im);
+
+% figure, imshow(im),title('Image source');
+
+%% Redimensionnement de l'image
+
+[h,w] = size(im);
+img = imresize(im, [400 400]);
+
+[H,W,Canaux] = size(img);
+% size(img)
+figure, imshow(img), title('Image redimensionnée');
+
+%% Conversion de l'image du RGB vers YCbCR
+
+imgYCbCr = rgb2ycbcr(img);
+
+figure, imshow(imgYCbCr), title('Image domaine YCbCr');
+
+%% Reconnaissance de contours rouges ou bleus
+
+imdetect = zeros(H,W);
+
+Y = imgYCbCr(:,:,1);
+Cb = imgYCbCr(:,:,2);
+Cr = imgYCbCr(:,:,3);
+
+    % Détection des contours en rouge
+
+imRed = redDetect(img,Y,Cb,Cr);
+figure, imshow(imRed);
+
+
+    % Détection des contours en bleu
+
+% imdetectblue = blueDetect(img,Cb,Cr);
+% figure, imshow(imdetectblue);
+
+%% Suppresion des pixels parasites
+
+SE = [0 1 0;0 1 0;0 1 0];
+E = 1; % nombre d'érosions
+
+for i = 1:E
+    imRed = imerode(imRed,SE);
+end
+
+imRed = imdilate(imRed,SE); % On effectue une ouverture par reconstruction
+% imRed = imopen(imRed,SE);
+
+figure,imshow(imRed);
+
+imRedbin = im2bw(imRed); % conversion en image binaire
+% imRedbin = ~imRedbin;
+
+%% Etiqueter l'image x
+[imLabel,Etiquettes] = bwlabel(imRedbin);       % N représente le nombre d'étiquettes
+disp(sprintf('     -- > %d objets détectés',Etiquettes));
+
+Etiquettes = regionprops(imLabel, 'BoundingBox', 'Area');
+
+for k = 1 : length(Etiquettes)
+  objet(k,:) = Etiquettes(k).BoundingBox;
+  rectangle('Position', [objet(k,1),objet(k,2),objet(k,3),objet(k,4)],...
+  'EdgeColor','r','LineWidth',2 )
+end
+
+Aires = [Etiquettes.Area];
+[classAire, index] = sort(Aires, 'descend');
+
+index_new = index(find(classAire>100 & classAire<1000));
+
+%% Comparaison avec la base des formes
+
+%    Charger une image référence
+
+cercle = imread('Cercle.bmp');
+triangle = imread('Triangle.bmp');
+triangle_envers = imread('Triangle_envers.bmp');
+% carre = imread('Carre.bmp');
+oct = imread('Octogone.bmp');
+
+cercle = imresize(cercle, [50 50]);
+triangle = imresize(triangle, [50 50]);
+triangle_envers = imresize(triangle_envers, [50 50]);
+% carre = imresize(carre, [50 50]);
+oct = imresize(oct, [50 50]);
+
+% cercle = imresize(cercle, [75 75]);
+% triangle = imresize(triangle, [75 75]);
+% triangle_envers = imresize(triangle_envers, [75 75]);
+% carre = imresize(carre, [75 75]);
+% oct = imresize(oct, [75 75]);
+% figure, imshow(triangle);
+
+%% Template Maching de l'image avec la base des formes
+
+maxi = zeros(1,5);
+x = zeros(1,5);
+y = zeros(1,5);
+
+
+imLabel2 = zeros(length(imLabel) + 2);
+for i = 1:length(imLabel)
+    for j = 1:length(imLabel)
+        imLabel2(i+1,j+1) = imLabel(i,j);
+    end
+end
+% figure, imshow(imLabel2);
+
+
+for j=1:length(index_new)
+    for k = 1:length(Etiquettes)
+         if  objet(k,3)> 20 && objet(k,3)<80 && objet(k,4)>20 && objet(k,4)<100
+    ima = imLabel2(floor(objet(index_new(j),2))+1:round(objet(index_new(j),4)+objet(index_new(j),2))+1,...
+        floor(objet(index_new(j),1))+1:round(objet(index_new(j),3)+objet(index_new(j),1))+1);
+    
+%     ima = imresize(ima, [60 60]);
+         end
+    end
+    ima = imresize(ima, 3);
+    figure, imshow(ima);
+
+[corr_cerc, maxi(1,1), x(1,1), y(1,1)] = templateMatch(ima, cercle);
+[corr_tri, maxi(1,2), x(1,2), y(1,2)] = templateMatch(ima, triangle);
+[corr_trienvers, maxi(1,3), x(1,3), y(1,3)] = templateMatch(ima, triangle_envers);
+% [corr_carre, maxi(1,4), x(1,4), y(1,4)] = templateMatch(ima, carre);
+[corr_oct, maxi(1,5), x(1,5), y(1,5)] = templateMatch(ima, oct);
+
+
+% figure, imshow(corr_cercp);
+% figure, imshow(corr_cerc); title('Matching cercle');
+% figure, imshow(corr_tri); title('Matching triangle');
+% figure, imshow(corr_trienvers); title('Matching triangle envers');
+% figure, imshow(corr_carre);title('Matching carre');
+% figure, imshow(corr_oct); title('Matching octogone');
+
+position = find(maxi==max(maxi));
+if position == 1
+    disp('Il s''agit d''un cercle');
+    figure, imshow(img);
+            hold on;
+            rectangle('Position', [objet(index_new(j),1),objet(index_new(j),2),objet(index_new(j),3),objet(index_new(j),4)], 'EdgeColor','r','LineWidth',2 );
+            text(objet(index_new(j),1),objet(index_new(j),2)-10,'Obligation','color','r');
+            hold off;
+            
+            Coupe = imcrop(img,[objet(index_new(j),1),objet(index_new(j),2),objet(index_new(j),3),objet(index_new(j),4)]);
+            imshow(Coupe);
+            
+    elseif position == 2
+    disp('Il s''agit d''un triangle');
+        figure, imshow(img);
+            hold on;
+            rectangle('Position', [objet(index_new(j),1),objet(index_new(j),2),objet(index_new(j),3),objet(index_new(j),4)], 'EdgeColor','r','LineWidth',2 );
+            text(objet(index_new(j),1),objet(index_new(j),2)-10,'Danger','color','r');
+            hold off;
+            
+            Coupe = imcrop(img,[objet(index_new(j),1),objet(index_new(j),2),objet(index_new(j),3),objet(index_new(j),4)]);
+            imshow(Coupe);
+            
+    elseif position == 3
+    disp('Il s''agit d''un triangle à l''envers : c''est un panneau cédez le passage !!');
+        figure, imshow(img);
+            hold on;
+            rectangle('Position', [objet(index_new(j),1),objet(index_new(j),2),objet(index_new(j),3),objet(index_new(j),4)], 'EdgeColor','r','LineWidth',2 );
+            text(objet(index_new(j),1),objet(index_new(j),2)-10,'CDPA','color','r');
+            hold off;
+            
+            Coupe = imcrop(img,[objet(index_new(j),1),objet(index_new(j),2),objet(index_new(j),3),objet(index_new(j),4)]);
+            imshow(Coupe);
+            
+%     figure, imshow(cdpa);
+%     elseif position == 4
+%     disp('Il s''agit d''un carré');
+    elseif position == 4
+    disp('Il s''agit d''un octogone : c''est un panneau stop !!');
+        figure, imshow(img);
+            hold on;
+            rectangle('Position', [objet(index_new(j),1),objet(index_new(j),2),objet(index_new(j),3),objet(index_new(j),4)], 'EdgeColor','r','LineWidth',2 );
+            text(objet(index_new(j),1),objet(index_new(j),2)-10,'Stop','color','r');
+            hold off;
+            
+            Coupe = imcrop(img,[objet(index_new(j),1),objet(index_new(j),2),objet(index_new(j),3),objet(index_new(j),4)]);
+            imshow(Coupe);
+%     figure, imshow(stop);
+end
+end
+
+%% Extraction de contours internes à la forme identifiée
+
+imCoupe = rgb2gray(Coupe);
+imCoupe = im2double(imCoupe);
+figure, imshow(imCoupe);
+
+[Hc1, Wc1] = size(imCoupe)
+imCoupeRedim = imresize(imCoupe,[50 50]);
+[Hc, Wc] = size(imCoupeRedim);
+
+figure, imshow(imCoupeRedim);
+
+h = fspecial('sobel');
+% h = fspecial('prewitt');
+
+% Dérivée par rapport à x - détection verticale
+
+imy = imfilter(imCoupeRedim,h);
+
+% Dérivée par rapport à y - détection horizontale
+
+imx = imfilter(imCoupeRedim,h');
+
+% module
+imres = sqrt(imx.^2+imy.^2);
+imres = imadjust(imres);   % Calibration
+
+figure,subplot(2,2,1),subimage(imCoupeRedim);title('Image source');
+subplot(2,2,2),subimage(cal(imy)),title('Gradient vertical');
+subplot(2,2,3), subimage(cal(imx)),title('Gradient horizontal');
+subplot(2,2,4),subimage(imres); title('Image module');
+
+
+imContour = im2bw(imres);
+imContour = ~imContour;
+figure, imshow(imContour);
+
+
